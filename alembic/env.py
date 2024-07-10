@@ -1,29 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ruff: noqa: E402
-import asyncio
-import os
-import sys
+import configparser  						# 导入的模块
+from logging.config import fileConfig		# 导入的模块
+from urllib.parse import quote_plus			# 导入的模块
 
 from logging.config import fileConfig
 
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-from sqlalchemy.ext.asyncio import AsyncEngine
-
-from db.models import User
-# from app.admin.model.sys_clock import Clock
-# from app.admin.model.sys_file import File
-# from app.admin.model.sys_result_hall import ResultHall
-# from app.admin.model.sys_rule import Rule
-from common.msd.model import MappedBase, Base
-
-sys.path.append('../')
-
-from core import path_conf
-
-if not os.path.exists(path_conf.ALEMBIC_Versions_DIR):
-    os.makedirs(path_conf.ALEMBIC_Versions_DIR)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -31,28 +15,33 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# https://alembic.sqlalchemy.org/en/latest/autogenerate.html#autogenerating-multiple-metadata-collections
-# from app.admin.model import MappedBase as AdminBase
-# target_metadata = Clock.metadata
-target_metadata = User.metadata
-# target_metadata = File.metadata
-# target_metadata = ResultHall.metadata
-# target_metadata = Rule.metadata
-# target_metadata = [
-#     MappedBase.metadata,
-# ]
-
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+from db.models import User,Club						# 导入模块
+target_metadata = User.metadata 				# 指定元数据
 # other values from the config, defined by the needs of env.py,
-from database.db_mysql import SQLALCHEMY_DATABASE_URL
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+################################ 添加的内容 ################################
+# 使用 configparser 读取另外一个.ini文件
+config_parser = configparser.ConfigParser()
+config_parser.read('config.ini')
+host = config_parser.get('mysql', 'mysql_host')
+user = config_parser.get('mysql', 'mysql_user')
+password = quote_plus(config_parser.get('mysql', 'mysql_pass')).replace("%", "%%")
+port = config_parser.get('mysql', 'mysql_port')
+db = config_parser.get('mysql', 'mysql_db')
+database_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}?charset=utf8mb4"
+###########################################################################
+config.set_main_option('sqlalchemy.url', database_url)	# 新增内容
 
-config.set_main_option('sqlalchemy.url', SQLALCHEMY_DATABASE_URL)
-
-
-def run_migrations_offline():
+def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -64,46 +53,41 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option('sqlalchemy.url')
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
-        target_metadata=target_metadata,  # type: ignore
+        target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={'paramstyle': 'named'}
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
-def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)  # type: ignore
-
-    with context.begin_transaction():
-        context.run_migrations()
-
-
-async def run_migrations_online():
+def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = AsyncEngine(
-        engine_from_config(
-            config.get_section(config.config_ini_section),
-            prefix='sqlalchemy.',
-            poolclass=pool.NullPool,
-            future=True,
-        )
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_migrations_online()

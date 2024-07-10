@@ -1,15 +1,16 @@
 from pydantic import BaseModel
 
 
-class CreateUserParam(BaseModel):
-    username: str
+class BaseUserParm(BaseModel):
+    name: str
     password: str
-    email: str
-    number: int
-    role: int
 
 
-class UpdateUserParam(BaseModel):
-    username: str
-    password: str
+class CreateUserParam(BaseUserParm):
+    email: str | None = None
+    number: int = 0
+    role: int = 3
+
+
+class UpdateUserParam(BaseUserParm):
     email: str

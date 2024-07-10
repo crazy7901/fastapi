@@ -1,77 +1,55 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from fast_captcha import text_captcha
+from typing import Type
+
 from sqlalchemy import and_, desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 
+from core.crud import ModelType
 from db.models import User
 from schemas.user import (
     CreateUserParam, UpdateUserParam
 )
-from common.msd.crud import CRUDBase
-from common.security.jwt import get_hash_password
-from utils.timezone import timezone
 
 
-class CRUDUser(CRUDBase[User, CreateUserParam,UpdateUserParam]):
-    async def get(self, db: AsyncSession, user_id: str | None = None, user_name: str | None = None) -> User | None:
+# from common.msd.crud import CRUDBase
+# from common.security.jwt import get_hash_password
+# from utils.timezone import timezone
+
+
+# class CRUDUser(CRUDBase[User, CreateUserParam,UpdateUserParam]):
+class CRUDUser():
+    def __init__(self, model: Type[ModelType]):
+        self.model = model
+
+    async def get(self, db: AsyncSession, id: str | None = None, name: str | None = None) -> User | None:
         """
         获取用户
 
-        :param user_name:
+        :param name:
         :param db:
-        :param user_id:
+        :param id:
         :return:
         """
-        return await self.get_(db, pk=user_id, name=user_name)
+        if name is not None:
+            await db.execute(select(self.model).where(self.model.name==name))
+        if id is not None:
+            await db.execute(select(self.model).where(self.model.id==id))
 
-    async def get_by_uuid(self, db: AsyncSession, uuid: str) -> User | None:
-        """
-        通过 username 获取用户
-
-        :param db:
-        :param username:
-        :return:
-        """
-        user = await db.execute(select(self.model).where(self.model.uuid == uuid))
-        return user.scalars().first()
-
-    async def get_by_username(self, db: AsyncSession, username: str) -> User | None:
-        """
-        通过 username 获取用户
-
-        :param db:
-        :param username:
-        :return:
-        """
-        user = await db.execute(select(self.model).where(self.model.username == username))
-        return user.scalars().first()
-
-    async def get_by_nickname(self, db: AsyncSession, nickname: str) -> User | None:
-        """
-        通过 nickname 获取用户
-
-        :param db:
-        :param nickname:
-        :return:
-        """
-        user = await db.execute(select(self.model).where(self.model.nickname == nickname))
-        return user.scalars().first()
-
-    async def update_login_time(self, db: AsyncSession, username: str) -> int:
-        """
-        更新用户登录时间
-
-        :param db:
-        :param username:
-        :return:
-        """
-        user = await db.execute(
-            update(self.model).where(self.model.username == username).values(last_login_time=timezone.now())
-        )
-        return user.rowcount
+    # async def update_login_time(self, db: AsyncSession, username: str) -> int:
+    #     """
+    #     更新用户登录时间
+    #
+    #     :param db:
+    #     :param username:
+    #     :return:
+    #     """
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.username == username).values(last_login_time=timezone.now())
+    #     )
+    #     return user.rowcount
 
     async def create(self, db: AsyncSession, obj: CreateUserParam, *, social: bool = False) -> None:
         """
@@ -82,12 +60,6 @@ class CRUDUser(CRUDBase[User, CreateUserParam,UpdateUserParam]):
         :param social:
         :return:
         """
-        # if not social:
-        #     salt = text_captcha(5)
-        #     obj.password = await get_hash_password(f'{obj.password}{salt}')
-        #     dict_obj = obj.model_dump()
-        #     dict_obj.update({'salt': salt})
-        # else:
         dict_obj = obj.model_dump()
         #     dict_obj.update({'salt': None})
         new_user = self.model(**dict_obj)
@@ -149,7 +121,7 @@ class CRUDUser(CRUDBase[User, CreateUserParam,UpdateUserParam]):
         :return:
         """
         user = await db.execute(
-            update(self.model).where(self.model.id == pk).values(password=await get_hash_password(password + salt))
+            update(self.model).where(self.model.id == pk).values(password=password)
         )
         return user.rowcount
 

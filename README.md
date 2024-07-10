@@ -1,4 +1,5 @@
 ### 更新数据库  
+`alembic init alembic`  
 `alembic revision --autogenerate`  
 `alembic upgrade head` 
 
