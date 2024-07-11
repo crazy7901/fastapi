@@ -8,8 +8,7 @@ class BaseUserParm(BaseModel):
 
 class CreateUserParam(BaseUserParm):
     email: str | None = None
-    number: int = 0
-    role: int = 3
+    role: int = 1000
 
 
 class UpdateUserParam(BaseUserParm):
