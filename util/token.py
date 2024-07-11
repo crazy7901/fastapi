@@ -1,9 +1,11 @@
 import datetime
 from fastapi import HTTPException
-from service.user_service import user_service
 import jwt
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+
+from app.crud.crud_user import user_dao
+from db.database import async_db_session
 
 SECURITY_KEY = 'cdsbfjknjkvnuidlnfuidhfusdlbdvnu'
 ALGORITHMS = "HS256"
@@ -45,7 +47,8 @@ async def get_current_token(token: str = Depends(oauth2_scheme)):
         if token_data:
             # 验证
             username = token_data.get('username', None)
-            user = user_service.get_user(name=username)
+            async with async_db_session.begin() as db:
+                user = await user_dao.get(db=db, name=username)
             if user:
                 isValidate = True
             else:

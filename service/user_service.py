@@ -14,7 +14,8 @@ class UserService:
                 raise Exception('Password is required')
             username = await user_dao.get(db=db, name=user.name)
             if username:
-                raise Exception("Username already exists")
+                print("Username already exists")
+                return False
             await user_dao.create(db, obj=user)
         return user
 
@@ -25,7 +26,7 @@ class UserService:
                 user = await user_dao.get(db=db, id=id)
             if not name:
                 user = await user_dao.get(db=db, name=name)
-            if id is None and name is None:raise Exception('参数为空')
+            if id is None and name is None: raise Exception('参数为空')
             return user
 
     @staticmethod
@@ -33,14 +34,14 @@ class UserService:
         async with async_db_session.begin() as db:
             user = await user_dao.get(db=db, name=obj.name)
             if not user:
-                raise Exception('用户不存在')
+                # raise Exception('用户不存在')
+                return False
             else:
-                if user.password == obj.password:
-                    token = await generate_access_token(user.name)
+                if user[0].password == obj.password:
+                    token = await generate_access_token(user[0].name)
                     return token
                 else:
                     return False
-
 
 
 user_service = UserService()

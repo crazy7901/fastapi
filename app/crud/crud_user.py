@@ -24,7 +24,7 @@ class CRUDUser():
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get(self, db: AsyncSession, id: str | None = None, name: str | None = None) -> User | None:
+    async def get(self, db: AsyncSession, id: str | None = None, name: str | None = None):
         """
         获取用户
 
@@ -34,9 +34,11 @@ class CRUDUser():
         :return:
         """
         if name is not None:
-            await db.execute(select(self.model).where(self.model.name==name))
+            users = await db.execute(select(self.model).where(self.model.name == name))
+            return users.scalars().all()
         if id is not None:
-            await db.execute(select(self.model).where(self.model.id==id))
+            users = await db.execute(select(self.model).where(self.model.id == id))
+            return users.scalars().all()
 
     # async def update_login_time(self, db: AsyncSession, username: str) -> int:
     #     """
