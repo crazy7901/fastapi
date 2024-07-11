@@ -12,4 +12,5 @@ class CreateUserParam(BaseUserParm):
 
 
 class UpdateUserParam(BaseUserParm):
-    email: str
+    # email: str
+    role: int
