@@ -20,7 +20,7 @@ from schemas.user import (
 
 
 # class CRUDUser(CRUDBase[User, CreateUserParam,UpdateUserParam]):
-class CRUDUser():
+class CRUDUser:
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
@@ -40,19 +40,6 @@ class CRUDUser():
             users = await db.execute(select(self.model).where(self.model.id == id))
             return users.scalars().all()
 
-    # async def update_login_time(self, db: AsyncSession, username: str) -> int:
-    #     """
-    #     更新用户登录时间
-    #
-    #     :param db:
-    #     :param username:
-    #     :return:
-    #     """
-    #     user = await db.execute(
-    #         update(self.model).where(self.model.username == username).values(last_login_time=timezone.now())
-    #     )
-    #     return user.rowcount
-
     async def create(self, db: AsyncSession, obj: CreateUserParam, *, social: bool = False) -> None:
         """
         创建用户
@@ -67,7 +54,7 @@ class CRUDUser():
         new_user = self.model(**dict_obj)
         db.add(new_user)
 
-    async def update_userinfo(self, db: AsyncSession, input_user: User, obj: CreateUserParam) -> int:
+    async def update_userinfo(self, db: AsyncSession, input_user: User, obj: dict) -> int:
         """
         更新用户信息
 
@@ -76,7 +63,7 @@ class CRUDUser():
         :param obj:
         :return:
         """
-        user = await db.execute(update(self.model).where(self.model.id == input_user.id).values(**obj.model_dump()))
+        user = await db.execute(update(self.model).where(self.model.id == input_user.id).values(obj))
         return user.rowcount
 
     # async def update_avatar(self, db: AsyncSession, current_user: User, avatar: AvatarParam) -> int:
@@ -157,128 +144,139 @@ class CRUDUser():
         if where_list:
             se = se.where(and_(*where_list))
         return se
+    # async def update_login_time(self, db: AsyncSession, username: str) -> int:
+    #     """
+    #     更新用户登录时间
+    #
+    #     :param db:
+    #     :param username:
+    #     :return:
+    #     """
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.username == username).values(last_login_time=timezone.now())
+    #     )
+    #     return user.rowcount
+    # async def get_super(self, db: AsyncSession, user_id: int) -> bool:
+    #     """
+    #     获取用户超级管理员状态
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     user = await self.get(db, user_id)
+    #     return user.is_superuser
 
-    async def get_super(self, db: AsyncSession, user_id: int) -> bool:
-        """
-        获取用户超级管理员状态
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        user = await self.get(db, user_id)
-        return user.is_superuser
-
-    async def get_staff(self, db: AsyncSession, user_id: int) -> bool:
-        """
-        获取用户后台登录状态
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        user = await self.get(db, user_id)
-        return user.is_staff
-
-    async def get_status(self, db: AsyncSession, user_id: int) -> bool:
-        """
-        获取用户状态
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        user = await self.get(db, user_id)
-        return user.status
-
-    async def get_multi_login(self, db: AsyncSession, user_id: int) -> bool:
-        """
-        获取用户多点登录状态
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        user = await self.get(db, user_id)
-        return user.is_multi_login
-
-    async def set_super(self, db: AsyncSession, user_id: int) -> int:
-        """
-        设置用户超级管理员
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        super_status = await self.get_super(db, user_id)
-        user = await db.execute(
-            update(self.model).where(self.model.id == user_id).values(is_superuser=False if super_status else True)
-        )
-        return user.rowcount
-
-    async def set_staff(self, db: AsyncSession, user_id: int) -> int:
-        """
-        设置用户后台登录
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        staff_status = await self.get_staff(db, user_id)
-        user = await db.execute(
-            update(self.model).where(self.model.id == user_id).values(is_staff=False if staff_status else True)
-        )
-        return user.rowcount
-
-    async def set_status(self, db: AsyncSession, user_id: int) -> int:
-        """
-        设置用户状态
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        status = await self.get_status(db, user_id)
-        user = await db.execute(
-            update(self.model).where(self.model.id == user_id).values(status=False if status else True)
-        )
-        return user.rowcount
-
-    async def set_multi_login(self, db: AsyncSession, user_id: int) -> int:
-        """
-        设置用户多点登录
-
-        :param db:
-        :param user_id:
-        :return:
-        """
-        multi_login = await self.get_multi_login(db, user_id)
-        user = await db.execute(
-            update(self.model).where(self.model.id == user_id).values(is_multi_login=False if multi_login else True)
-        )
-        return user.rowcount
-
-    async def get_with_relation(self, db: AsyncSession, *, user_id: int = None, username: str = None) -> User | None:
-        """
-        获取用户和（部门，角色，菜单）
-
-        :param db:
-        :param user_id:
-        :param username:
-        :return:
-        """
-        where = []
-        if user_id:
-            where.append(self.model.id == user_id)
-        if username:
-            where.append(self.model.username == username)
-        user = await db.execute(
-            select(self.model)
-            .options(selectinload(self.model.dept))
-            # .options(selectinload(self.model.roles).joinedload(Role.menus))
-            .where(*where)
-        )
-        return user.scalars().first()
+    # async def get_staff(self, db: AsyncSession, user_id: int) -> bool:
+    #     """
+    #     获取用户后台登录状态
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     user = await self.get(db, user_id)
+    #     return user.is_staff
+    #
+    # async def get_status(self, db: AsyncSession, user_id: int) -> bool:
+    #     """
+    #     获取用户状态
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     user = await self.get(db, user_id)
+    #     return user.status
+    #
+    # async def get_multi_login(self, db: AsyncSession, user_id: int) -> bool:
+    #     """
+    #     获取用户多点登录状态
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     user = await self.get(db, user_id)
+    #     return user.is_multi_login
+    #
+    # async def set_super(self, db: AsyncSession, user_id: int) -> int:
+    #     """
+    #     设置用户超级管理员
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     super_status = await self.get_super(db, user_id)
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.id == user_id).values(is_superuser=False if super_status else True)
+    #     )
+    #     return user.rowcount
+    #
+    # async def set_staff(self, db: AsyncSession, user_id: int) -> int:
+    #     """
+    #     设置用户后台登录
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     staff_status = await self.get_staff(db, user_id)
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.id == user_id).values(is_staff=False if staff_status else True)
+    #     )
+    #     return user.rowcount
+    #
+    # async def set_status(self, db: AsyncSession, user_id: int) -> int:
+    #     """
+    #     设置用户状态
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     status = await self.get_status(db, user_id)
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.id == user_id).values(status=False if status else True)
+    #     )
+    #     return user.rowcount
+    #
+    # async def set_multi_login(self, db: AsyncSession, user_id: int) -> int:
+    #     """
+    #     设置用户多点登录
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :return:
+    #     """
+    #     multi_login = await self.get_multi_login(db, user_id)
+    #     user = await db.execute(
+    #         update(self.model).where(self.model.id == user_id).values(is_multi_login=False if multi_login else True)
+    #     )
+    #     return user.rowcount
+    #
+    # async def get_with_relation(self, db: AsyncSession, *, user_id: int = None, username: str = None) -> User | None:
+    #     """
+    #     获取用户和（部门，角色，菜单）
+    #
+    #     :param db:
+    #     :param user_id:
+    #     :param username:
+    #     :return:
+    #     """
+    #     where = []
+    #     if user_id:
+    #         where.append(self.model.id == user_id)
+    #     if username:
+    #         where.append(self.model.username == username)
+    #     user = await db.execute(
+    #         select(self.model)
+    #         .options(selectinload(self.model.dept))
+    #         # .options(selectinload(self.model.roles).joinedload(Role.menus))
+    #         .where(*where)
+    #     )
+    #     return user.scalars().first()
 
 
 user_dao: CRUDUser = CRUDUser(User)
