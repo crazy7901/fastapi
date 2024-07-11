@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Request
+from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordBearer
 from common.response.response_schema import response_base, ResponseModel
+from schemas.club import CreateClubParam
 from schemas.user import *
 from service.user_service import user_service
+from test import DependsJwtAuth
+from util.token import get_current_token
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.post("/register", description="注册接口")
@@ -24,3 +30,10 @@ async def login(user: BaseUserParm) -> ResponseModel:
         return await response_base.success(data=data)
     else:
         return await response_base.fail(data="用户名或密码错误")
+
+
+@router.post("/createClub", description="创建俱乐部")
+async def createClub(club: CreateClubParam, current_user: dict = Depends(get_current_token)):
+    return {"message": f"Project is being rechecked by user {current_user['username']}"}
+
+
