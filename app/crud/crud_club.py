@@ -35,6 +35,7 @@ class CRUDUser:
         #     dict_obj.update({'salt': None})
         new_club = self.model(**dict_obj)
         db.add(new_club)
+        await db.flush()
 
 
 club_dao: CRUDUser = CRUDUser(Club)

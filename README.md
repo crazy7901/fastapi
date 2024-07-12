@@ -75,3 +75,24 @@
     "data": "用户名或密码错误"
 }
 ```
+
+* 创建俱乐部接口:`http://0.0.0.0:8080/api/user/createClub`  
+参数:
+```json
+{
+  "name": "chemistry united",
+  "avatar":1
+}
+```
+返回值:  
+```json
+{
+    "code": 400,
+    "msg": "请求错误",
+    "data": "创建俱乐部失败"
+}
+```  
+或者:  
+```json
+
+```

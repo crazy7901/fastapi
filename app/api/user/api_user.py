@@ -36,8 +36,8 @@ async def login(user: BaseUserParm) -> ResponseModel:
 @router.post("/createClub", description="创建俱乐部")
 async def createClub(club: CreateClubParam, current_user: dict = Depends(get_current_token))->ResponseModel:
     data = await club_service.create_club(club,creator=current_user['username'])
-    if data:
-        return await response_base.success()
+    if data[0]:
+        return await response_base.success(data=data[1])
     else:
-        return await response_base.fail(data="创建俱乐部失败")
+        return await response_base.fail(data=data[1])
 
