@@ -94,5 +94,13 @@
 ```  
 或者:  
 ```json
-
+{
+    "code": 200,
+    "msg": "请求成功",
+    "data": {
+        "name": "chemistry united",
+        "id": 10,
+        "captain": 1
+    }
+}
 ```

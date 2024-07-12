@@ -37,7 +37,12 @@ async def login(user: BaseUserParm) -> ResponseModel:
 async def createClub(club: CreateClubParam, current_user: dict = Depends(get_current_token))->ResponseModel:
     data = await club_service.create_club(club,creator=current_user['username'])
     if data[0]:
-        return await response_base.success(data=data[1])
+        club_detail={
+            "name":data[1].name,
+            "id":data[1].id,
+            "captain":data[1].captain
+        }
+        return await response_base.success(data=club_detail)
     else:
         return await response_base.fail(data=data[1])
 
