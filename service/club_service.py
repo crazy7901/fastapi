@@ -22,7 +22,7 @@ class ClubService:
                 # 实现 club 创建功能
                 club.captain = user.id
                 await club_dao.create_club(db=db, obj=club)
-                await user_dao.update_userinfo(db=db, input_user=user, obj={"role": 1101})
+                await user_dao.update_userinfo(db=db, id=user.id, obj={"role": 1100})
                 clubs = await club_dao.get_club(db=db, name=club.name)
                 return True, clubs[0]
 
