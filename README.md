@@ -69,7 +69,10 @@
 {
     "code": 200,
     "msg": "请求成功",
-    "data": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNoZW4iLCJleHAiOjE3MjA2ODc1NzZ9.PCkfhzKwRH46HDUAYCUxYbcPog5FjZeDvcGzCfOpAso"
+    "data": {
+      "username":"czy",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNoZW4iLCJleHAiOjE3MjA2ODc1NzZ9.PCkfhzKwRH46HDUAYCUxYbcPog5FjZeDvcGzCfOpAso"
+    }
 }
 ```
 或者  
