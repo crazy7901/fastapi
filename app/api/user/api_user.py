@@ -46,6 +46,10 @@ async def register(user: CreateUserParam, captcha) -> ResponseModel:
 @router.post("/login", description="登录接口")
 async def login(user: BaseUserParm) -> ResponseModel:
     data = await user_service.check_user(user)
+    data = {
+        "token": data,
+        "username": user.name
+    }
     if data:
         return await response_base.success(data=data)
     else:
