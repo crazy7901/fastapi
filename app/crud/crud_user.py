@@ -24,22 +24,25 @@ class CRUDUser:
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get(self, db: AsyncSession, id: str | None = None, name: str | None = None):
+    async def get(self, db: AsyncSession, email: str | None = None, name: str | None = None, id: int | None = None):
         """
         获取用户
 
+        :param id:
         :param name:
         :param db:
-        :param id:
+        :param email:
         :return:
         """
         if name is not None:
             users = await db.execute(select(self.model).where(self.model.name == name))
             return users.scalars().all()
+        if email is not None:
+            users = await db.execute(select(self.model).where(self.model.email == email))
+            return users.scalars().all()
         if id is not None:
             users = await db.execute(select(self.model).where(self.model.id == id))
             return users.scalars().all()
-
     async def create(self, db: AsyncSession, obj: CreateUserParam, *, social: bool = False) -> None:
         """
         创建用户
@@ -54,7 +57,7 @@ class CRUDUser:
         new_user = self.model(**dict_obj)
         db.add(new_user)
 
-    async def update_userinfo(self, db: AsyncSession, input_user: User, obj: dict) -> int:
+    async def update_userinfo(self, db: AsyncSession, id, obj: dict) -> int:
         """
         更新用户信息
 
@@ -63,7 +66,7 @@ class CRUDUser:
         :param obj:
         :return:
         """
-        user = await db.execute(update(self.model).where(self.model.id == input_user.id).values(obj))
+        user = await db.execute(update(self.model).where(self.model.id == id).values(obj))
         return user.rowcount
 
     # async def update_avatar(self, db: AsyncSession, current_user: User, avatar: AvatarParam) -> int:
