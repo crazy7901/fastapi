@@ -1,11 +1,8 @@
 import time
 
-from app.crud.crud_user import user_dao
-from db.database import async_db_session
 from schemas.user import *
-from db.models import User
-from util.token import *
 from util.email import dict_captcha
+from util.token import *
 
 
 class UserService:
@@ -59,6 +56,25 @@ class UserService:
                     return token
                 else:
                     return False
+
+    @staticmethod
+    async def check_email(email, captcha):  # 邮箱登录接口
+        async with async_db_session.begin() as db:
+            user = await user_dao.get(db=db, email=email)
+            if not user:
+                return False, "用户不存在"
+            else:
+                try:
+                    now = time.time()
+                    if now - dict_captcha[email + "time"] > 300:
+                        dict_captcha[email] = None
+                        return False, "验证码超时"
+                    if not dict_captcha[email] == captcha:
+                        return False, "验证码错误"
+                except Exception:
+                    return False, "未发送验证码"
+                token = await generate_access_token(user[0].name)
+                return True, token, user[0].name
 
     @staticmethod  # 更新用户密码
     async def update_password(update_user: UpdateUserParam, captcha):
