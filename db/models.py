@@ -73,7 +73,7 @@ class Race(Base):
     awayTeamJersey = Column(String(50), comment='客场球衣颜色')
     multiPlayer = Column(Integer, comment='多人制')
     venue = Column(Integer, comment='1、金盆岭左半场 2、金盆岭右半场 3、云塘左半场 4、云塘右半场')
-    eventId = Column(Integer, default=0,comment="比赛类型：某锦标赛、友谊赛=0等")
+    eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
     createdTime = Column(DateTime, default=datetime.utcnow, comment="比赛创建时间")
     homeTeamGoalsScored = Column(Integer, comment="主队进球数")
     awayTeamGoalsScored = Column(Integer, comment="客队进球数")
@@ -88,8 +88,9 @@ class Goal(Base):
     awayTeamJersey = Column(String(50), comment='客场球衣颜色')
     multiPlayer = Column(Integer, comment='多人制')
     venue = Column(Integer, comment='1、金盆岭左半场 2、金盆岭右半场 3、云塘左半场 4、云塘右半场')
-    eventId = Column(Integer, default=0,comment="比赛类型：某锦标赛、友谊赛=0等")
+    eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
     goalTime = Column(Integer, comment="进球时间")
+
 
 class Events(Base):
     __tablename__ = "events"
