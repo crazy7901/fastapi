@@ -10,7 +10,7 @@ from sqlalchemy.sql import Select
 from core.crud import ModelType
 from db.models import User
 from schemas.user import (
-    CreateUserParam, UpdateUserParam
+    CreateUserParam
 )
 
 
@@ -43,7 +43,8 @@ class CRUDUser:
         if id is not None:
             users = await db.execute(select(self.model).where(self.model.id == id))
             return users.scalars().all()
-    async def create(self, db: AsyncSession, obj: CreateUserParam, *, social: bool = False) -> None:
+
+    async def create(self, db: AsyncSession, obj: CreateUserParam) -> None:
         """
         创建用户
 
@@ -57,16 +58,20 @@ class CRUDUser:
         new_user = self.model(**dict_obj)
         db.add(new_user)
 
-    async def update_userinfo(self, db: AsyncSession, id, obj: dict) -> int:
+    async def update_userinfo(self, db: AsyncSession,obj: dict, id:int | None = None, name:str|None=None) -> int:
         """
         更新用户信息
 
+        :param name:
         :param db:
         :param input_user:
         :param obj:
         :return:
         """
-        user = await db.execute(update(self.model).where(self.model.id == id).values(obj))
+        if id:
+            user = await db.execute(update(self.model).where(self.model.id == id).values(obj))
+        else:
+            user = await db.execute(update(self.model).where(self.model.name == name).values(obj))
         return user.rowcount
 
     # async def update_avatar(self, db: AsyncSession, current_user: User, avatar: AvatarParam) -> int:

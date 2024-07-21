@@ -21,7 +21,7 @@ async def send_email(mess, to_addr):
         # 1.创建邮件(写好邮件内容、发送人、收件人和标题等)
         msg['From'] = format_addr('社区管理员 <%s>' % from_addr)  # 发件人昵称和邮箱
         msg['To'] = format_addr('管理员 <%s>' % to_addr)  # 收件人昵称和邮箱
-        msg['Subject'] = Header('欢迎来到，Victory Greens', 'utf-8').encode()  # 邮件标题
+        msg['Subject'] = Header('欢迎来到Victory Greens', 'utf-8').encode()  # 邮件标题
 
         # 2.登录账号
         server = smtplib.SMTP(smtp_server, 25)

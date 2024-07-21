@@ -57,9 +57,9 @@ async def login(user: BaseUserParm) -> ResponseModel:
 
 
 @router.post("/emaillogin/{captcha}", summary="邮箱登录接口")
-async def emaillogin(user:UpdateUserParam,captcha) -> ResponseModel:
+async def emaillogin(user: UpdateUserParam, captcha) -> ResponseModel:
     email = user.email
-    data = await user_service.check_email(email=email,captcha=captcha)
+    data = await user_service.check_email(email=email, captcha=captcha)
     if data[0]:
         return await response_base.success(data={"token": data[1], "username": data[2]})
     else:
@@ -116,3 +116,23 @@ async def update_avatar(user: UpdateUserParam, current_user: dict = Depends(get_
         return await response_base.success(data="修改成功")
     else:
         return await response_base.fail(data="修改失败")
+
+
+@router.get("/getApplication", summary="获取申请列表")
+async def getApplication(current_user: dict = Depends(get_current_token)) -> ResponseModel:
+    data = await user_service.getApplication(username=current_user['username'])
+    return await response_base.success(data=data)
+
+
+class PlayerUser(BaseModel):
+    userId: str
+    decision: int
+
+
+@router.post("/clubDecide", summary="对申请加入的球员进行处理")
+async def clubDecide(playerinfo: PlayerUser, current_user: dict = Depends(get_current_token)) -> ResponseModel:
+    data = await club_service.club_decide(playerinfo=playerinfo, creator=current_user['username'])
+    if data[0]:
+        return await response_base.success(data=data[1])
+    else:
+        return await response_base.fail(data=data[1])

@@ -1,6 +1,7 @@
 import time
 
 from schemas.user import *
+from service.player_service import player_service
 from util.email import dict_captcha
 from util.token import *
 
@@ -105,5 +106,20 @@ class UserService:
             await user_dao.update_userinfo(db, obj=dict, id=id)
             return True
 
+    @staticmethod
+    async def getApplication(username: str):
+        async with async_db_session.begin() as db:
+            current_user = await user_dao.get(name=username, db=db)
+            role = current_user[0].role
+            if role//100 == 11:
+                players = await player_service.get_player_by_club(club=current_user[0].club)
+                players_dicts = []
+                for player in players:
+                    dict = {'userId': player.userId, 'name': player.name}
+                    if not player.flag:
+                        players_dicts.append(dict)
+                return players_dicts
+            else:
+                return False, "您无权申请"
 
 user_service = UserService()

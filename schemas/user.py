@@ -17,4 +17,4 @@ class UpdateUserParam(BaseUserParm):
     password: str | None = None
     name: str | None = None
     email: str | None = None
-    avatar: int | None = None
+    # avatar: int | None = None
