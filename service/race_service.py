@@ -24,7 +24,7 @@ class RaceService:
             today = datetime.date.today()
             try:
                 race = await race_dao.get_race(db=db, day=today)
-                race = race[0]
+                # race = race[0]
             except:
                 race = None
             return race

@@ -13,8 +13,8 @@ async def getNextMatch():
     if data:
         data = {
             "id": data.id,
-            "startTime": data.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-            "endTime": data.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+            "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
+            "endTime": data.endTime.strftime('%Y-%m-%d %H:%M:%S'),
             "homeClub": data.homeClub,
             "awayClub": data.awayClub,
             "venue": data.venue,
@@ -26,23 +26,26 @@ async def getNextMatch():
 
 @router.get('/races', summary="获取今日赛事")  # 可能开始可能未开始，若不存在比分显示比赛未开始
 async def getTodayMatches():
-    data = await race_service.get_today()
-    if data:
-        data = {
-            "id": data.id,
-            "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
-            "endTime": data.endTime.strftime('%Y-%m-%d %H:%M:%S'),
-            "homeClub": data.homeClub,
-            "awayClub": data.awayClub,
-            "venue": data.venue,
-            "eventId": data.eventId,
-            "multiPlayer": data.multiPlayer,
-            "homeTeamGoalsScored": data.homeTeamGoalsScored,
-            "awayTeamGoalsScored": data.awayTeamGoalsScored,
-            "homeTeamJersey": data.homeTeamJersey,
-            "awayTeamJersey": data.awayTeamJersey
-        }
-    return await response_base.success(data=data)
+    datas = await race_service.get_today()
+    races = []
+    if datas:
+        for data in datas:
+            d = {
+                "id": data.id,
+                "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
+                "endTime": data.endTime.strftime('%Y-%m-%d %H:%M:%S'),
+                "homeClub": data.homeClub,
+                "awayClub": data.awayClub,
+                "venue": data.venue,
+                "eventId": data.eventId,
+                "multiPlayer": data.multiPlayer,
+                "homeTeamGoalsScored": data.homeTeamGoalsScored,
+                "awayTeamGoalsScored": data.awayTeamGoalsScored,
+                "homeTeamJersey": data.homeTeamJersey,
+                "awayTeamJersey": data.awayTeamJersey
+            }
+            races.append(d)
+    return await response_base.success(data=races)
 
 
 @router.get('/schedule', summary="获取本周赛程表")
