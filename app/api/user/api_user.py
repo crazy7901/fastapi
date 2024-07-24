@@ -2,8 +2,9 @@ import base64
 import random
 import re
 import time
+from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 from fastapi.params import Depends
 
 from common.response.response_schema import response_base, ResponseModel
@@ -15,7 +16,18 @@ from util.email import send_email, dict_captcha
 from util.token import get_current_token
 
 router = APIRouter()
+import oss2
+from oss2.credentials import EnvironmentVariableCredentialsProvider
 
+# 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
+auth = oss2.ProviderAuth(EnvironmentVariableCredentialsProvider())
+
+# yourEndpoint填写Bucket所在地域对应的Endpoint。以华东1（杭州）为例，Endpoint填写为https://oss-cn-hangzhou.aliyuncs.com。
+# 填写Bucket名称，例如examplebucket。
+bucket = oss2.Bucket(auth, 'https://oss-cn-beijing.aliyuncs.com', 'victory-greens')
+
+
+# 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 @router.post("/sendEmail/{toaddr}", summary="发送邮件验证码")
@@ -98,24 +110,24 @@ async def update(user: UpdateUserParam, current_user: dict = Depends(get_current
         return await response_base.fail(data="修改失败")
 
 
-@router.get("/avatar", summary="获取头像集")
-async def avatar_list() -> ResponseModel:
-    avatars = {}
-    for i in range(0, 12):
-        with open('./img/' + str(i) + '.png', 'rb') as f:
-            image_base64 = base64.b64encode(f.read())
-            avatars[i] = image_base64
-        # avatars[i]='1'
-    return await response_base.success(data=avatars)
+# @router.get("/avatar", summary="获取头像集")
+# async def avatar_list() -> ResponseModel:
+#     avatars = {}
+#     for i in range(0, 12):
+#         with open('./img/' + str(i) + '.png', 'rb') as f:
+#             image_base64 = base64.b64encode(f.read())
+#             avatars[i] = image_base64
+#         # avatars[i]='1'
+#     return await response_base.success(data=avatars)
 
 
-@router.put("/updateAvatar", summary="更新头像")
-async def update_avatar(user: UpdateUserParam, current_user: dict = Depends(get_current_token)) -> ResponseModel:
-    data = await user_service.update_user(update_user=user, username=current_user['username'])
-    if data:
-        return await response_base.success(data="修改成功")
-    else:
-        return await response_base.fail(data="修改失败")
+# @router.put("/updateAvatar", summary="更新头像")
+# async def update_avatar(user: UpdateUserParam, current_user: dict = Depends(get_current_token)) -> ResponseModel:
+#     data = await user_service.update_user(update_user=user, username=current_user['username'])
+#     if data:
+#         return await response_base.success(data="修改成功")
+#     else:
+#         return await response_base.fail(data="修改失败")
 
 
 @router.get("/getApplication", summary="获取申请列表")
@@ -136,3 +148,25 @@ async def clubDecide(playerinfo: PlayerUser, current_user: dict = Depends(get_cu
         return await response_base.success(data=data[1])
     else:
         return await response_base.fail(data=data[1])
+
+
+@router.get("/avatar", summary="获取用户头像")
+async def avatar(user: UpdateUserParam) -> ResponseModel:
+    username = user.name
+    object_name = f'player/{username}.png'
+
+    # 生成下载文件的签名URL，有效时间为3600秒。
+    # 设置slash_safe为True，OSS不会对Object完整路径中的正斜线（/）进行转义，此时生成的签名URL可以直接使用。
+    url = bucket.sign_url('GET', object_name, 3600, slash_safe=True)
+    return await response_base.success(data=url)
+
+
+@router.post("/updateAvatar")
+async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(get_current_token)):
+    contents = await file.read()
+    username = current_user['username']
+    bucket.put_object(f'player/{username}.png', contents)
+    # 处理图像
+    # ...
+
+    return await response_base.success(data="Image processed successfully")
