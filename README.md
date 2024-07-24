@@ -222,3 +222,6 @@
     }
 }
 ```
+
+* 直接用pycharm软件包导入aliyun的包  
+![img.png](img.png)
