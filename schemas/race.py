@@ -30,4 +30,4 @@ class CreateRaceParam(BaseRaceParm):
 
 
 class UpdateRaceParam(BaseRaceParm):
-    pass
+    id: int
