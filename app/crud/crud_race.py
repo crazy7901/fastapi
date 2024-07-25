@@ -1,7 +1,7 @@
 import datetime
 from typing import Type
 
-from sqlalchemy import or_, select, and_, func
+from sqlalchemy import or_, select, and_, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.crud import ModelType
@@ -25,6 +25,7 @@ class CRUDRace:
         if day is not None:
             races = await db.execute(select(self.model).where(func.date(self.model.startTime) == day))
             return races.scalars().all()
+
     async def add_race(self, db: AsyncSession, obj: CreateRaceParam):
         new_start_time = obj.startTime
         new_end_time = obj.endTime
@@ -50,7 +51,33 @@ class CRUDRace:
             dict_obj = obj.model_dump()
             new_race = self.model(**dict_obj)
             db.add(new_race)
-            return True,"比赛创建成功"
+            return True, "比赛创建成功"
+
+    async def update_race(self, db, obj, id):
+        try:
+            new_start_time = obj['startTime']
+            new_end_time = obj['endTime']
+            overlapping_intervals = await db.execute(
+                select(self.model).where(
+                    or_(
+                        and_(*[self.model.startTime < new_end_time, self.model.endTime >= new_end_time]),
+                        and_(*[self.model.startTime <= new_start_time, self.model.endTime > new_start_time]),
+                        and_(*[self.model.startTime >= new_start_time, self.model.endTime <= new_start_time])
+                    )
+                )
+            )
+
+            # 获取结果
+            overlapping_records = overlapping_intervals.scalars().all()
+            if overlapping_records:
+                return False, "存在时间冲突"
+        except:
+            pass
+        user = await db.execute(update(self.model).where(self.model.id == id).values(obj))
+        if user.rowcount:
+            return True
+        else:
+            return False
 
 
 race_dao: CRUDRace = CRUDRace(Race)
