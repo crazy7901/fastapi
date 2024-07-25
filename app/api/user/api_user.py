@@ -1,8 +1,6 @@
-import base64
 import random
 import re
 import time
-from typing import List
 
 from fastapi import APIRouter, UploadFile, File
 from fastapi.params import Depends
@@ -161,7 +159,7 @@ async def avatar(user: UpdateUserParam) -> ResponseModel:
     return await response_base.success(data=url)
 
 
-@router.post("/updateAvatar")
+@router.post("/updateAvatar", summary='上传用户头像')
 async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(get_current_token)):
     contents = await file.read()
     username = current_user['username']
@@ -170,3 +168,23 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
     # ...
 
     return await response_base.success(data="Image processed successfully")
+
+
+@router.put("/clubAvatar", summary='上传俱乐部头像')
+async def upload_image(file: UploadFile = File(...)):
+    contents = await file.read()
+    bucket.put_object(f'club/化联2队.png', contents)
+    # 处理图像
+    # ...
+
+    return await response_base.success(data="Image processed successfully")
+
+
+@router.get("/getImage/{name}", summary="获取小程序所需的图片")
+async def logos(name) -> ResponseModel:
+    object_name = f'app/{name}.png'
+
+    # 生成下载文件的签名URL，有效时间为3600秒。
+    # 设置slash_safe为True，OSS不会对Object完整路径中的正斜线（/）进行转义，此时生成的签名URL可以直接使用。
+    url = bucket.sign_url('GET', object_name, 3600, slash_safe=True)
+    return await response_base.success(data=url)
