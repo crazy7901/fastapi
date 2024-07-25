@@ -74,17 +74,6 @@ class CRUDUser:
             user = await db.execute(update(self.model).where(self.model.name == name).values(obj))
         return user.rowcount
 
-    # async def update_avatar(self, db: AsyncSession, current_user: User, avatar: AvatarParam) -> int:
-    #     """
-    #     更新用户头像
-    #
-    #     :param db:
-    #     :param current_user:
-    #     :param avatar:
-    #     :return:
-    #     """
-    #     user = await db.execute(update(self.model).where(self.model.id == current_user.id).values(avatar=avatar.url))
-    #     return user.rowcount
 
     async def delete(self, db: AsyncSession, user_id: int) -> int:
         """
