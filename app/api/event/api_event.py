@@ -1,5 +1,9 @@
 from fastapi import APIRouter
+from fastapi.params import Depends
+
 from common.response.response_schema import response_base
+from schemas.race import UpdateRaceParam
+from util.token import get_current_token
 
 router = APIRouter()
 
@@ -10,7 +14,7 @@ async def addMatch():
 
 
 @router.put('/update', summary="更新赛事信息")
-async def updateMatch():
+async def updateMatch(race : UpdateRaceParam,current_user: dict = Depends(get_current_token)):
     return await response_base.success()
 
 
