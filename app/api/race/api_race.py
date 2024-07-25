@@ -1,16 +1,32 @@
+import oss2
 from fastapi import APIRouter
+from fastapi.params import Depends
+from oss2.credentials import EnvironmentVariableCredentialsProvider
 
 from common.response.response_schema import response_base
-from schemas.race import CreateRaceParam
+from schemas.race import CreateRaceParam, UpdateRaceParam
 from service.race_service import race_service
+from util.token import get_current_token
 
+# 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
+auth = oss2.ProviderAuth(EnvironmentVariableCredentialsProvider())
+
+# yourEndpoint填写Bucket所在地域对应的Endpoint。以华东1（杭州）为例，Endpoint填写为https://oss-cn-hangzhou.aliyuncs.com。
+# 填写Bucket名称，例如examplebucket。
+bucket = oss2.Bucket(auth, 'https://oss-cn-beijing.aliyuncs.com', 'victory-greens')
+
+# 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
 router = APIRouter()
 
 
-@router.get("/next", summary="获取下一场比赛") # 未开始的赛事
+@router.get("/next", summary="获取下一场比赛")  # 未开始的赛事
 async def getNextMatch():
     data = await race_service.get_next()
     if data:
+        object_name1 = f'club/{data.homeClub}.png'
+        url1 = bucket.sign_url('GET', object_name1, 3600, slash_safe=True)
+        object_name2 = f'club/{data.awayClub}.png'
+        url2 = bucket.sign_url('GET', object_name2, 3600, slash_safe=True)
         data = {
             "id": data.id,
             "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
@@ -19,7 +35,9 @@ async def getNextMatch():
             "awayClub": data.awayClub,
             "venue": data.venue,
             "eventId": data.eventId,
-            "multiPlayer": data.multiPlayer
+            "multiPlayer": data.multiPlayer,
+            "homeAvatar": url1,
+            "awayAvatar": url2
         }
     return await response_base.success(data=data)
 
@@ -30,6 +48,10 @@ async def getTodayMatches():
     races = []
     if datas:
         for data in datas:
+            object_name1 = f'club/{data.homeClub}.png'
+            url1 = bucket.sign_url('GET', object_name1, 3600, slash_safe=True)
+            object_name2 = f'club/{data.awayClub}.png'
+            url2 = bucket.sign_url('GET', object_name2, 3600, slash_safe=True)
             d = {
                 "id": data.id,
                 "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
@@ -42,7 +64,9 @@ async def getTodayMatches():
                 "homeTeamGoalsScored": data.homeTeamGoalsScored,
                 "awayTeamGoalsScored": data.awayTeamGoalsScored,
                 "homeTeamJersey": data.homeTeamJersey,
-                "awayTeamJersey": data.awayTeamJersey
+                "awayTeamJersey": data.awayTeamJersey,
+                "homeAvatar": url1,
+                "awayAvatar": url2
             }
             races.append(d)
     return await response_base.success(data=races)
@@ -53,7 +77,7 @@ async def getSchedule():
     return await response_base.success()
 
 
-@router.get('/owner', summary="个人的赛事")
+@router.get('/owner', summary="个人所在俱乐部的赛事")
 async def getOwnerMatch():
     return await response_base.success()
 
@@ -68,7 +92,8 @@ async def addMatch(race: CreateRaceParam):
 
 
 @router.put('/update', summary="更新比赛")
-async def updateMatch():
+async def updateMatch(race: UpdateRaceParam, current_user: dict = Depends(get_current_token)):
+    data = await race_service.update_race(username=current_user['username'], race=race)
     return await response_base.success()
 
 
