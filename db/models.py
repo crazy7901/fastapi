@@ -86,7 +86,7 @@ class Goal(Base):
     raceId = Column(Integer, comment='比赛id')
     userId = Column(Integer, comment='进球球员id')
     eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
-    goalTime = Column(Integer, comment="进球时间")
+    goalTime = Column(String(50), comment="进球时间")
 
 
 class Events(Base):
