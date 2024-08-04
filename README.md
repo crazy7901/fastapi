@@ -225,3 +225,11 @@
 
 * 直接用pycharm软件包导入aliyun的包  
 ![img.png](img.png)
+
+
+* 初始化数据库方法   
+1、将alembic文件夹中的env.py另存  
+2、删除alembic文件夹  
+3、运行指令`alembic init alembic`，然后将之前的env.py覆盖掉生成的env.py  
+4、`alembic revision --autogenerate`  
+5、`alembic upgrade head`  
