@@ -19,7 +19,6 @@ class UserService:
                 return False, "验证码错误"
         except Exception:
             return False, "未发送验证码"
-        dict_captcha[user.email] = None
         async with async_db_session.begin() as db:
             if not user.password:
                 raise Exception('Password is required')
@@ -32,6 +31,7 @@ class UserService:
                 print("邮箱已被注册")
                 return False, "邮箱已被注册"
             await user_dao.create(db, obj=user)
+        dict_captcha[user.email] = None
         return True, user
 
     @staticmethod  # 查重函数
@@ -53,7 +53,7 @@ class UserService:
                 return False
             else:
                 if user[0].password == obj.password:
-                    token = await generate_access_token(user[0].name)
+                    token = await generate_access_token(user[0].id)
                     return token
                 else:
                     return False
@@ -98,20 +98,20 @@ class UserService:
             return True, '修改密码成功'
 
     @staticmethod  # 更新用户所有信息
-    async def update_user(username: str, update_user: UpdateUserParam):
+    async def update_user(username: str | int, update_user: UpdateUserParam):
         async with async_db_session.begin() as db:
-            current_user = await user_dao.get(name=username, db=db)
+            current_user = await user_dao.get(id=username, db=db)
             id = current_user[0].id
             dict = update_user.dict(exclude_unset=True)
             await user_dao.update_userinfo(db, obj=dict, id=id)
             return True
 
     @staticmethod
-    async def getApplication(username: str):
+    async def getApplication(username: str | int):
         async with async_db_session.begin() as db:
-            current_user = await user_dao.get(name=username, db=db)
+            current_user = await user_dao.get(id=int(username), db=db)
             role = current_user[0].role
-            if role//100 == 11:
+            if role // 100 == 11:
                 players = await player_service.get_player_by_club(club=current_user[0].club)
                 players_dicts = []
                 for player in players:
@@ -121,5 +121,23 @@ class UserService:
                 return players_dicts
             else:
                 return False, "您无权申请"
+
+    @staticmethod
+    async def getEmail(email: str):
+        async with async_db_session.begin() as db:
+            user = await user_dao.get(db=db, email=email)
+            return user
+
+    @staticmethod
+    async def get_detail(email: str | None = None, name: str | None = None, id: int | None = None):
+        async with async_db_session.begin() as db:
+            if id:
+                user = await user_dao.get(db=db, id=id)
+            if email:
+                user = await user_dao.get(db=db, email=email)
+            if name:
+                user = await user_dao.get(db=db, name=name)
+            return user
+
 
 user_service = UserService()

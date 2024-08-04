@@ -15,10 +15,10 @@ class PlayerUser(BaseModel):
 class ClubService:
 
     @staticmethod
-    async def create_club(club: CreateClubParam, creator: str):
+    async def create_club(club: CreateClubParam, creator: str | int):
         # 实现 club 创建功能
         async with async_db_session.begin() as db:
-            user = await user_dao.get(db=db, name=creator)  # 用于验证创建人信息
+            user = await user_dao.get(db=db, id=int(creator))  # 用于验证创建人信息
             current_club = await club_dao.get_club(db=db, name=club.name)  # 用于查找俱乐部是否已存在
             player = await player_dao.get_player(db=db, userId=creator)
             user = user[0]
@@ -31,7 +31,7 @@ class ClubService:
                 return False, '该用户已加入俱乐部'
             else:
                 # 实现 club 创建功能
-                club.captain = creator
+                club.captain = user.id
                 await club_dao.create_club(db=db, obj=club)
                 await user_dao.update_userinfo(db=db, id=user.id, obj={"role": role + 100, "club": club.name})
                 await player_dao.update_player(db=db, id=creator, obj={"club": club.name, "flag": 1})

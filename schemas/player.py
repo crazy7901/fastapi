@@ -8,7 +8,7 @@ class BasePlayerParm(BaseModel):
 
 
 class CreatePlayerParam(BasePlayerParm):
-    userId: str | None = None
+    userId: int | None = None
     position: str | None = None
     goalsScoredInFriendlies: int = 0
     goalsScoredInChallenges: int = 0

@@ -1,12 +1,8 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker, Mapper, mapped_column
-from sqlalchemy.sql import func
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, event
+from sqlalchemy import DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 
 from db.base_class import Base
 
@@ -17,20 +13,28 @@ class User(Base):
     id = Column(Integer, primary_key=True, comment='id')
     email = Column(String(50), unique=True, index=True, comment="邮箱")
     password = Column(String(50), comment="密码")
-    name = Column(String(50), comment="名字")
+    name = Column(String(50), unique=True, comment="名字")
     is_active = Column(Boolean, default=True, comment="状态")
     role = Column(Integer, default=1000,
                   comment="角色 1：队长 2：教练 3：队员,格式为1000，第二位为队长（球队创建者默认为队长），第三位位为教练，第四位为队员")
     club = Column(String(50), index=True, comment="所属球队名", default=None)
+    createdTime = Column(DateTime, default=datetime.utcnow, comment="创建时间")
     # avatar = Column(Integer, default=0, comment="头像，0-11")
     # items = relationship("Club", back_populates="player")ateTime, server_default=func.now(), comment="创建时间")  #
     # 使用server_default owner_id=Mapper[]=mapped_column(Integer, index=True, comment="球队创建者")
+
+    # 关系定义
+    # players = relationship("Player", foreign_keys="Player.userId", backref="user")
+    # clubs = relationship("Club", foreign_keys="Club.captain", backref="user")
+    # transfers = relationship("Transfer", foreign_keys="Transfer.userId", backref="user")
+    # goals = relationship("Goal", foreign_keys="Goal.userId", backref="user")
+    # events = relationship("Events", foreign_keys="Events.userId", backref="user")
 
 
 class Club(Base):
     __tablename__ = "clubs"
 
-    captain = Column(String(50),index=True, comment="队长名")
+    captain = Column(Integer, ForeignKey('users.id'), comment='用户名')
     id = Column(Integer, primary_key=True, index=True, comment="id")
     name = Column(String(50), index=True, comment="俱乐部名")
     # avatar = Column(Integer, default=0, comment="头像，0-11")
@@ -45,11 +49,11 @@ class Player(Base):
     club = Column(String(50), comment="俱乐部名")
     position = Column(String(50), comment="场上位置")
     name = Column(String(50), comment="球员名")
-    userId = Column(String(50), comment='用户名')
+    userId = Column(Integer, ForeignKey('users.id'), comment='用户名')
     goalsScoredInFriendlies = Column(Integer, comment='友谊赛进球数')
     goalsScoredInChallenges = Column(Integer, comment='正赛赛进球数')
     createdTime = Column(DateTime, default=datetime.utcnow, comment="创建时间")
-    flag = Column(Integer, default=0,comment='球员状态,0为尚未通过审核,1为正式球员')
+    flag = Column(Integer, default=0, comment='球员状态,0为尚未通过审核,1为正式球员')
 
 
 class Transfer(Base):
@@ -59,7 +63,7 @@ class Transfer(Base):
     formatClub = Column(String(50), comment="原俱乐部名")
     newNumber = Column(Integer, unique=True, index=True, comment="新球队号码")
     newClub = Column(String(50), comment="现俱乐部名")
-    userId = Column(Integer, comment='用户id')
+    userId = Column(Integer, ForeignKey('users.id'), comment='用户id')
     createdTime = Column(DateTime, default=datetime.utcnow, comment="转会时间")
 
 
@@ -84,14 +88,55 @@ class Goal(Base):
     __tablename__ = "goals"
     id = Column(Integer, primary_key=True, comment='id')
     raceId = Column(Integer, comment='比赛id')
-    userId = Column(Integer, comment='进球球员id')
+    userId = Column(Integer, ForeignKey('users.id'), comment='进球球员用户名')
     eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
     goalTime = Column(String(50), comment="进球时间")
+    goalType = Column(Integer, default=0, comment="0运动战进球，1任意球，2点球")
+    club = Column(String(50), comment="球员所属俱乐部")
+    scoredClub = Column(String(50), comment="被进球的俱乐部")
 
 
 class Events(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, comment='id')
-    userId = Column(Integer, comment='赛事创建者')
+    userId = Column(Integer, ForeignKey('users.id'), comment='赛事创建者')
     type = Column(Integer, comment="赛事类型0联赛，1杯赛")
     multiPlayer = Column(Integer, comment='多人制')
+
+# 
+# async def update_player_name(mapper, connection, target):
+#     # Update the player's name and userId when the User object is updated
+#     try:
+#         for player in target.players:
+#             print("修改成功")
+#             # player.name = target.name
+#             player.userId = target.name
+#     except:
+#         print("无player对象")
+# 
+#     try:
+#         for club in target.clubs:
+#             club.captain = target.name
+#     except:
+#         print("无club对象")
+# 
+#     try:
+#         for transfer in target.transfers:
+#             transfer.userId = target.name
+#     except:
+#         print("无transfer对象")
+# 
+#     try:
+#         for goal in target.goals:
+#             goal.userId = target.name
+#     except:
+#         print("无goal对象")
+# 
+#     try:
+#         for event in target.events:
+#             event.userId = target.name
+#     except:
+#         print("无event对象")
+# 
+# # Listen for the 'after_update' event on the User class
+# event.listen(User, 'after_update', update_player_name)

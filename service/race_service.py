@@ -36,9 +36,9 @@ class RaceService:
             return result
 
     @staticmethod  # 队长可以修改比赛时间，
-    async def update_race(username: str, race: UpdateRaceParam):
+    async def update_race(username: int, race: UpdateRaceParam):
         async with async_db_session.begin() as db:
-            role = await user_dao.get(db=db,name=username)
+            role = await user_dao.get(db=db,id=username)
             if not race.id:
                 return False, "比赛 ID 不能为空"
             if role[0].role // 1000 == 2:  # 2开头的为管理员,有所有权限

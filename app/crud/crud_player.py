@@ -13,7 +13,7 @@ class CRUDPlayer:
         self.model = model
 
     async def get_player(self, db: AsyncSession, club: str | None = None, name: str | None = None,
-                         id: int | None = None, number: int | None = None, userId: str | None = None):
+                         id: int | None = None, number: int | None = None, userId: int | None = None):
         if club is not None:
             players = await db.execute(
                 select(self.model).where(self.model.club == club))

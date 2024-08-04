@@ -13,6 +13,7 @@ class CreateUserParam(BaseUserParm):
 
 class UpdateUserParam(BaseUserParm):
     # email: str
+    id: int | None = None
     role: int | None = None
     password: str | None = None
     name: str | None = None

@@ -6,6 +6,7 @@ from fastapi import APIRouter, UploadFile, File
 from fastapi.params import Depends
 
 from common.response.response_schema import response_base, ResponseModel
+from db.database import async_db_session
 from schemas.club import CreateClubParam
 from schemas.user import *
 from service.club_service import club_service
@@ -29,12 +30,16 @@ bucket = oss2.Bucket(auth, 'https://oss-cn-beijing.aliyuncs.com', 'victory-green
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 @router.post("/sendEmail/{toaddr}", summary="发送邮件验证码")
-async def register(toaddr: str) -> ResponseModel:
+async def register(toaddr: str, f: int = 0) -> ResponseModel:  # flag为1意味着注册，不能有重复的
     regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     flag = bool(re.match(regex, toaddr))
     if not flag:
         return await response_base.fail(data="邮箱格式不正确")
     else:
+        if f:
+            duplicateFlag = await user_service.getEmail(email=toaddr)
+            if duplicateFlag:
+                return await response_base.fail(data="该邮箱已被注册")
         # 发送邮件验证码
         captcha = str(random.randint(100000, 999999))
         dict_captcha[toaddr] = captcha
@@ -150,8 +155,8 @@ async def clubDecide(playerinfo: PlayerUser, current_user: dict = Depends(get_cu
 
 @router.get("/avatar", summary="获取用户头像")
 async def avatar(user: UpdateUserParam) -> ResponseModel:
-    username = user.name
-    object_name = f'player/{username}.png'
+    username = user.id
+    object_name = f'player/{id}.png'
 
     # 生成下载文件的签名URL，有效时间为3600秒。
     # 设置slash_safe为True，OSS不会对Object完整路径中的正斜线（/）进行转义，此时生成的签名URL可以直接使用。
@@ -163,6 +168,7 @@ async def avatar(user: UpdateUserParam) -> ResponseModel:
 async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(get_current_token)):
     contents = await file.read()
     username = current_user['username']
+
     bucket.put_object(f'player/{username}.png', contents)
     # 处理图像
     # ...
@@ -188,3 +194,9 @@ async def logos(name) -> ResponseModel:
     # 设置slash_safe为True，OSS不会对Object完整路径中的正斜线（/）进行转义，此时生成的签名URL可以直接使用。
     url = bucket.sign_url('GET', object_name, 3600, slash_safe=True)
     return await response_base.success(data=url)
+
+
+@router.get("/detail", summary="获取用户个人信息")
+async def detail(current_user: dict = Depends(get_current_token)) -> ResponseModel:
+    data = await user_service.get_detail(id=current_user['username'])
+    return await response_base.success(data=data[0])

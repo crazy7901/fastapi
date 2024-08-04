@@ -13,7 +13,7 @@ ALGORITHMS = "HS256"
 security = HTTPBearer()
 
 
-async def generate_access_token(username: str):
+async def generate_access_token(username: int):
     if not username:
         raise HTTPException(
             status_code=401,
@@ -50,7 +50,7 @@ async def get_current_token(credentials: HTTPAuthorizationCredentials = Depends(
             # 验证
             username = token_data.get('username', None)
             async with async_db_session.begin() as db:
-                user = await user_dao.get(db=db, name=username)
+                user = await user_dao.get(db=db, id=username)
             if user:
                 isValidate = True
             else:

@@ -13,13 +13,13 @@ class PlayerService:
             if data:
                 return False, "该用户已有运动员"
             await player_dao.create_player(db=db, obj=obj_in)
-            current_user = await user_dao.get(name=obj_in.userId, db=db)
+            current_user = await user_dao.get(id=obj_in.userId, db=db)
             id = current_user[0].id
             await user_dao.update_userinfo(db, id=id, obj={"role": current_user[0].role + 1})
             return True, "球员创建成功"
 
     @staticmethod
-    async def get_player_by_id(id: str):
+    async def get_player_by_id(id: str | int):
         async with async_db_session.begin() as db:
             player = await player_dao.get_player(db=db, userId=id)
             return player
@@ -31,7 +31,7 @@ class PlayerService:
             return players
 
     @staticmethod
-    async def join_club(obj: UpdatePlayerParam, userId: str):
+    async def join_club(obj: UpdatePlayerParam, userId: int):
         async with async_db_session.begin() as db:
             player = await player_dao.get_player(db=db, userId=userId)
             club = await club_dao.get_club(db=db, name=obj.club)
@@ -44,11 +44,11 @@ class PlayerService:
             await player_dao.update_player(db, id=userId, obj={"club": obj.club, "flag": 0})
             return True, "申请成功"
     @staticmethod
-    async def exit_club(obj: UpdatePlayerParam, userId: str):
+    async def exit_club(obj: UpdatePlayerParam, userId: str | int):
         pass
 
     @staticmethod
-    async def update_player(obj: UpdatePlayerParam, userId: str):
+    async def update_player(obj: UpdatePlayerParam, userId: int):
         async with async_db_session.begin() as db:
             player = await player_dao.get_player(db=db, userId=userId)
             if not player:
