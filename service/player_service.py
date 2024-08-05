@@ -19,9 +19,9 @@ class PlayerService:
             return True, "球员创建成功"
 
     @staticmethod
-    async def get_player_by_id(id: str | int):
+    async def get_player_by_userId(id: str | int):
         async with async_db_session.begin() as db:
-            player = await player_dao.get_player(db=db, userId=id)
+            player = await player_dao.get_player(db=db, userId=int(id))
             return player
 
     @staticmethod
