@@ -18,7 +18,7 @@ class User(Base):
     role = Column(Integer, default=1000,
                   comment="角色 1：队长 2：教练 3：队员,格式为1000，第二位为队长（球队创建者默认为队长），第三位位为教练，第四位为队员")
     club = Column(String(50), index=True, comment="所属球队名", default=None)
-    createdTime = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+    createdTime = Column(DateTime, default=datetime.now, comment="创建时间")
     # avatar = Column(Integer, default=0, comment="头像，0-11")
     # items = relationship("Club", back_populates="player")ateTime, server_default=func.now(), comment="创建时间")  #
     # 使用server_default owner_id=Mapper[]=mapped_column(Integer, index=True, comment="球队创建者")
@@ -82,6 +82,7 @@ class Race(Base):
     createdTime = Column(DateTime, default=datetime.utcnow, comment="比赛创建时间")
     homeTeamGoalsScored = Column(Integer, comment="主队进球数")
     awayTeamGoalsScored = Column(Integer, comment="客队进球数")
+    userId = Column(Integer, ForeignKey('users.id'), comment='创建者id')
 
 
 class Goal(Base):
@@ -91,7 +92,7 @@ class Goal(Base):
     userId = Column(Integer, ForeignKey('users.id'), comment='进球球员用户名')
     eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
     goalTime = Column(String(50), comment="进球时间")
-    goalType = Column(Integer, default=0, comment="0运动战进球，1任意球，2点球")
+    goalType = Column(Integer, default=0, comment="0运动战进球，1任意球，2点球,3黄牌，4红牌")
     club = Column(String(50), comment="球员所属俱乐部")
     scoredClub = Column(String(50), comment="被进球的俱乐部")
 
@@ -103,6 +104,20 @@ class Events(Base):
     type = Column(Integer, comment="赛事类型0联赛，1杯赛")
     multiPlayer = Column(Integer, comment='多人制')
 
+
+class MatchPlayers(Base):
+    __tablename__ = "matchplayers"
+    id = Column(Integer, primary_key=True, comment='id')
+    number = Column(Integer, unique=True, index=True, comment="球队号码")
+    club = Column(String(50), comment="俱乐部名")
+    position = Column(String(50), comment="场上位置")
+    name = Column(String(50), comment="球员名")
+    userId = Column(Integer, ForeignKey('users.id'), comment='用户名')
+    raceId = Column(Integer, ForeignKey('races.id'), comment='比赛id')
+    # goalsScoredInFriendlies = Column(Integer, comment='友谊赛进球数')
+    # goalsScoredInChallenges = Column(Integer, comment='正赛赛进球数')
+    # createdTime = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+    # flag = Column(Integer, default=0, comment='球员状态,0为尚未通过审核,1为正式球员')
 # 
 # async def update_player_name(mapper, connection, target):
 #     # Update the player's name and userId when the User object is updated
