@@ -6,7 +6,6 @@ from fastapi import APIRouter, UploadFile, File
 from fastapi.params import Depends
 
 from common.response.response_schema import response_base, ResponseModel
-from db.database import async_db_session
 from schemas.club import CreateClubParam
 from schemas.user import *
 from service.club_service import club_service
@@ -196,7 +195,13 @@ async def logos(name) -> ResponseModel:
     return await response_base.success(data=url)
 
 
-@router.get("/detail", summary="获取用户个人信息")
+@router.get("/detail", summary="个人资料卡")
 async def detail(current_user: dict = Depends(get_current_token)) -> ResponseModel:
     data = await user_service.get_detail(id=current_user['username'])
-    return await response_base.success(data=data[0])
+    return await response_base.success(data=data)
+
+
+@router.get("/Playerdetail", summary="球员卡")
+async def PLayerdetail(current_user: dict = Depends(get_current_token)) -> ResponseModel:
+    data = await user_service.get_detail(id=current_user['username'])
+    return await response_base.success(data=data)

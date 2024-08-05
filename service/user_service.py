@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from schemas.user import *
@@ -37,9 +38,9 @@ class UserService:
     @staticmethod  # 查重函数
     async def get_user(id: int | None = None, name: str | None = None):
         async with async_db_session.begin() as db:
-            if not id:
+            if id:
                 user = await user_dao.get(db=db, id=id)
-            if not name:
+            if name:
                 user = await user_dao.get(db=db, name=name)
             if id is None and name is None: raise Exception('参数为空')
             return user
@@ -137,7 +138,40 @@ class UserService:
                 user = await user_dao.get(db=db, email=email)
             if name:
                 user = await user_dao.get(db=db, name=name)
-            return user
+            user = user[0]
+            if user.role == 1000:
+                role = '用户'
+            elif user.role == 1001:
+                role = '球员'
+            elif user.role //100 == 11:
+                role = '队长'
+            elif user.role // 10 == 101:
+                role = '教练'
+            elif user.role // 1000 == 2:
+                role = '管理员'
+            if user.is_active:
+                state = '正常'
+            else:
+                state = '禁用'
+            now = datetime.datetime.now()
+            delta = now - user.createdTime
+            if user.id <10:
+                id_str = "00"+str(user.id)
+            elif 100 > user.id > 10:
+                id_str = "0"+str(user.id)
+            else:
+                id_str = str(user.id)
+            detail = {
+                'name': user.name,
+                # 'email': user.email,
+                'role': role,
+                'state': state,
+                # 'club': user.club,
+                # 'flag': user.flag,
+                'id': id_str,
+                'days':delta.days
+            }
+            return detail
 
 
 user_service = UserService()
