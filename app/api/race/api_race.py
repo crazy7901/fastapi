@@ -1,9 +1,12 @@
+from typing import List
+
 import oss2
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.params import Depends
 from oss2.credentials import EnvironmentVariableCredentialsProvider
 
 from common.response.response_schema import response_base
+from schemas.matchplayer import CreateMatchPlayerParam
 from schemas.race import CreateRaceParam, UpdateRaceParam
 from service.race_service import race_service
 from util.token import get_current_token
@@ -83,7 +86,8 @@ async def getOwnerMatch():
 
 
 @router.post('/add', summary="创建比赛")
-async def addMatch(race: CreateRaceParam):
+async def addMatch(race: CreateRaceParam, current_user: dict = Depends(get_current_token)):
+    race.userId = current_user['username']
     result = await race_service.add_race(race)
     if result[0]:
         return await response_base.success(data=result[1])
@@ -97,7 +101,7 @@ async def updateMatch(race: UpdateRaceParam, current_user: dict = Depends(get_cu
     return await response_base.success()
 
 
-@router.get('/detail', summary="比赛详情")
+@router.get('/detail', summary="比赛详情,包括球员信息")
 async def getMatchDetail():
     return await response_base.success()
 
@@ -107,6 +111,20 @@ async def deleteMatch():
     return await response_base.success()
 
 
-@router.post('/addgoal', summary="创建进球")
+@router.post('/addgoal', summary="创建进球/违规")
 async def addGoal():
     return await response_base.success()
+
+
+# class IdsModel(BaseModel):
+#     ids: CreateMatchPlayerParam
+@router.post('/commit', summary="提交球员名单")
+async def commitPlayerList(list: List[CreateMatchPlayerParam], request: Request,
+                           current_user: dict = Depends(get_current_token)):
+    # raceId = request.headers['id']
+    # result = await race_service.commit_player_list(list=list, raceId=raceId)
+    result = await race_service.commit_player_list(list=list, username=current_user['username'])
+    if result[0]:
+        return await response_base.success(data=result[1])
+    else:
+        return await response_base.fail(data=result[1])
