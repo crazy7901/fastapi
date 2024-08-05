@@ -27,7 +27,18 @@ class CreateRaceParam(BaseRaceParm):
     multiPlayer: int
     venue: int
     eventId: int
+    userId: int | None = None
 
 
 class UpdateRaceParam(BaseRaceParm):
     id: int
+    startTime: datetime| None = None
+    endTime: datetime| None = None
+    homeClub: str| None = None
+    awayClub: str| None = None
+    homeTeamJersey: str| None = None
+    awayTeamJersey: str| None = None
+    multiPlayer: int| None = None
+    venue: int| None = None
+    eventId: int| None = None
+    userId: int | None = None

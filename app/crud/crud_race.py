@@ -14,7 +14,7 @@ class CRUDRace:
         self.model = model
 
     async def get_race(self, db: AsyncSession, club: str | None = None, now: datetime.datetime | None = None,
-                       day: datetime.date | None = None):
+                       day: datetime.date | None = None,id: int | None = None):
         if club is not None:
             races = await db.execute(
                 select(self.model).where(or_(*[self.model.homeClub == club, self.model.awayClub == club])))
@@ -24,6 +24,9 @@ class CRUDRace:
             return races.scalars().all()
         if day is not None:
             races = await db.execute(select(self.model).where(func.date(self.model.startTime) == day))
+            return races.scalars().all()
+        if id is not None:
+            races = await db.execute(select(self.model).where(self.model.id == id))
             return races.scalars().all()
 
     async def add_race(self, db: AsyncSession, obj: CreateRaceParam):
