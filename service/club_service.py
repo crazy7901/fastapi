@@ -23,7 +23,7 @@ class ClubService:
             player = await player_dao.get_player(db=db, userId=creator)
             user = user[0]
             role = user.role
-            if role != 1001:  # 只有尚未成为队长的球员
+            if role % 10 != 1:  # 只有尚未成为队长的球员
                 return False, '尚未注册身份，不可创建'
             elif current_club:
                 return False, '俱乐部名重复'
@@ -53,7 +53,7 @@ class ClubService:
                 else:
                     await player_dao.update_player(db=db, id=userId, obj={'club': None, 'flag': 0})
                     # send_message(msg="你的申请被拒绝")
-                return True,"审核成功"
+                return True, "审核成功"
             else:
                 return False, '只有队长可以执行此操作'
 
