@@ -21,7 +21,8 @@ async def generate_access_token(username: int):
             headers={"WWW-Authenticate": "Bearer"}
         )
     # 如果存在生成token
-    token_expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=1440)
+    # token_expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=1440)
+    token_expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
     print("token_expires:", token_expires)
     # 需要加密的数据
     token_data = {
