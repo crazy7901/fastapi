@@ -26,9 +26,19 @@ async def update(obj: UpdatePlayerParam,current_user: dict = Depends(get_current
     return await response_base.success()
 
 
-@router.get('/detail', summary="获取球员详情")
+@router.get('/detail', summary="获取球员详情（球员卡）")
 async def getPlayerDetail(current_user: dict = Depends(get_current_token)):
-    return await response_base.success()
+    detail = await player_service.get_player_by_userId(id=current_user['username'])
+    playDetail = detail[0]
+    data = {'number':playDetail.number,
+            'name': playDetail.name,
+            'position': playDetail.position
+            }
+    if playDetail.flag:
+        data['club']= playDetail.club
+    else:
+        data['club'] = '未加入俱乐部'
+    return await response_base.success(data = data)
 
 
 @router.delete('/delete', summary="注销球员")
