@@ -50,8 +50,8 @@ class Player(Base):
     position = Column(String(50), comment="场上位置")
     name = Column(String(50), comment="球员名")
     userId = Column(Integer, ForeignKey('users.id'), comment='用户名')
-    goalsScoredInFriendlies = Column(Integer, comment='友谊赛进球数')
-    goalsScoredInChallenges = Column(Integer, comment='正赛赛进球数')
+    # goalsScoredInFriendlies = Column(Integer, comment='友谊赛进球数')
+    # goalsScoredInChallenges = Column(Integer, comment='正赛赛进球数')
     createdTime = Column(DateTime, default=datetime.utcnow, comment="创建时间")
     flag = Column(Integer, default=0, comment='球员状态,0为尚未通过审核,1为正式球员')
 
@@ -92,7 +92,7 @@ class Goal(Base):
     userId = Column(Integer, ForeignKey('users.id'), comment='进球球员用户名')
     eventId = Column(Integer, default=0, comment="比赛类型：某锦标赛、友谊赛=0等")
     goalTime = Column(String(50), comment="进球时间")
-    goalType = Column(Integer, default=0, comment="0运动战进球，1任意球，2点球,3黄牌，4红牌")
+    goalType = Column(Integer, default=0, comment="0运动战进球，1任意球，2点球,3黄牌，4红牌,5助攻")
     club = Column(String(50), comment="球员所属俱乐部")
     scoredClub = Column(String(50), comment="被进球的俱乐部")
 
