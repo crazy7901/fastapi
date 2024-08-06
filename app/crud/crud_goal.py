@@ -4,35 +4,35 @@ from sqlalchemy import select, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.crud import ModelType
-from db.models import Player
-from schemas.player import CreatePlayerParam
+from db.models import Goal
+from schemas.goal import BaseGoalParm
 
 
-class CRUDPlayer:
+class CRUDGoal:
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get_player(self, db: AsyncSession, club: str | None = None, name: str | None = None,
+    async def get_goal(self, db: AsyncSession, club: str | None = None, name: str | None = None,
                          id: int | None = None, number: int | None = None, userId: str | None = None):
         if club is not None:
-            players = await db.execute(
+            goals = await db.execute(
                 select(self.model).where(self.model.club == club))
-            return players.scalars().all()
+            return goals.scalars().all()
         if name is not None:
-            players = await db.execute(select(self.model).where(self.model.name == name))
-            return players.scalars().all()
+            goals = await db.execute(select(self.model).where(self.model.name == name))
+            return goals.scalars().all()
         if id is not None:
-            players = await db.execute(select(self.model).where(self.model.id == id))
-            return players.scalars().all()
+            goals = await db.execute(select(self.model).where(self.model.id == id))
+            return goals.scalars().all()
         if userId is not None:
-            players = await db.execute(select(self.model).where(self.model.userId == userId))
-            return players.scalars().all()
+            goals = await db.execute(select(self.model).where(self.model.userId == userId))
+            return goals.scalars().all()
         if number is not None:
-            players = await db.execute(
+            goals = await db.execute(
                 select(self.model).where(and_(self.model.startTime == number, self.model.club == club)))
-            return players.scalars().all()
+            return goals.scalars().all()
 
-    async def create_player(self, db: AsyncSession, obj: CreatePlayerParam) -> None:
+    async def create_goal(self, db: AsyncSession, obj: BaseGoalParm) -> None:
         """
         创建用户
 
@@ -42,10 +42,10 @@ class CRUDPlayer:
         """
         dict_obj = obj.model_dump()
         #     dict_obj.update({'salt': None})
-        new_player = self.model(**dict_obj)
-        db.add(new_player)
+        new_goal = self.model(**dict_obj)
+        db.add(new_goal)
 
-    async def update_player(self, db: AsyncSession, id, obj: dict):
+    async def update_goal(self, db: AsyncSession, id, obj: dict):
         """
         更新用户信息
 
@@ -56,4 +56,4 @@ class CRUDPlayer:
         return user.rowcount
 
 
-player_dao: CRUDPlayer = CRUDPlayer(Player)
+goal_dao: CRUDGoal = CRUDGoal(Goal)
