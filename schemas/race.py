@@ -20,8 +20,8 @@ class BaseRaceParm(BaseModel):
 class CreateRaceParam(BaseRaceParm):
     startTime: datetime
     endTime: datetime
-    homeClub: str
-    awayClub: str
+    homeClubId: int
+    awayClubId: int
     homeTeamJersey: str
     awayTeamJersey: str
     multiPlayer: int
@@ -32,13 +32,13 @@ class CreateRaceParam(BaseRaceParm):
 
 class UpdateRaceParam(BaseRaceParm):
     id: int
-    startTime: datetime| None = None
-    endTime: datetime| None = None
-    homeClub: str| None = None
-    awayClub: str| None = None
-    homeTeamJersey: str| None = None
-    awayTeamJersey: str| None = None
-    multiPlayer: int| None = None
-    venue: int| None = None
-    eventId: int| None = None
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    homeClubId: int | None = None
+    awayClubId: int | None = None
+    homeTeamJersey: str | None = None
+    awayTeamJersey: str | None = None
+    multiPlayer: int | None = None
+    venue: int | None = None
+    eventId: int | None = None
     userId: int | None = None

@@ -25,7 +25,7 @@ class PlayerService:
             return player
 
     @staticmethod
-    async def get_player_by_club(club: str):
+    async def get_player_by_club(club: int):
         async with async_db_session.begin() as db:
             players = await player_dao.get_player(db=db, club=club)
             return players
@@ -34,14 +34,14 @@ class PlayerService:
     async def join_club(obj: UpdatePlayerParam, userId: int):
         async with async_db_session.begin() as db:
             player = await player_dao.get_player(db=db, userId=userId)
-            club = await club_dao.get_club(db=db, name=obj.club)
+            club = await club_dao.get_club(db=db, id=obj.clubId)
             if player[0].flag:
                 return False, "你已加入俱乐部，请先退出"
             if not player:
                 return False, "该用户不存在"
             if not club:
                 return False, "该俱乐部不存在"
-            await player_dao.update_player(db, id=userId, obj={"club": obj.club, "flag": 0})
+            await player_dao.update_player(db, id=userId, obj={"clubId": obj.clubId, "flag": 0})
             return True, "申请成功"
     @staticmethod
     async def exit_club(obj: UpdatePlayerParam, userId: str | int):

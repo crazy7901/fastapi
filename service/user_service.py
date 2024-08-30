@@ -113,7 +113,7 @@ class UserService:
             current_user = await user_dao.get(id=int(username), db=db)
             role = current_user[0].role
             if role // 100 == 11:
-                players = await player_service.get_player_by_club(club=current_user[0].club)
+                players = await player_service.get_player_by_club(club=current_user[0].clubId)
                 players_dicts = []
                 for player in players:
                     dict = {'userId': player.userId, 'name': player.name}

@@ -8,7 +8,7 @@ from schemas.club import CreateClubParam
 
 
 class PlayerUser(BaseModel):
-    userId: str
+    userId: int
     decision: int
 
 
@@ -33,25 +33,25 @@ class ClubService:
                 # 实现 club 创建功能
                 club.captain = user.id
                 await club_dao.create_club(db=db, obj=club)
-                await user_dao.update_userinfo(db=db, id=user.id, obj={"role": role + 100, "club": club.name})
-                await player_dao.update_player(db=db, id=creator, obj={"club": club.name, "flag": 1})
+                await user_dao.update_userinfo(db=db, id=user.id, obj={"role": role + 100})
+                # await player_dao.update_player(db=db, id=creator, obj={"club": club.name, "flag": 1})
                 clubs = await club_dao.get_club(db=db, name=club.name)
                 return True, clubs[0]
 
     @staticmethod
-    async def club_decide(playerinfo: PlayerUser, creator: str):
+    async def club_decide(playerinfo: PlayerUser, creator: int):
         async with async_db_session.begin() as db:
-            current_user = await user_dao.get(db=db, name=creator)
+            current_user = await user_dao.get(db=db, id=creator)
             current_user = current_user[0]
             if current_user.role // 100 == 11:
                 flag = playerinfo.decision
                 userId = playerinfo.userId
                 if flag:
-                    await user_dao.update_userinfo(db=db, name=userId, obj={'club': current_user.club})
-                    await player_dao.update_player(db=db, id=userId, obj={'club': current_user.club, 'flag': 1})
+                    await user_dao.update_userinfo(db=db, id=userId, obj={'clubId': current_user.clubId})
+                    await player_dao.update_player(db=db, id=userId, obj={'clubId': current_user.clubId, 'flag': 1})
                     # send_message(msg="你已加入俱乐部***")
                 else:
-                    await player_dao.update_player(db=db, id=userId, obj={'club': None, 'flag': 0})
+                    await player_dao.update_player(db=db, id=userId, obj={'clubId': None, 'flag': 0})
                     # send_message(msg="你的申请被拒绝")
                 return True, "审核成功"
             else:

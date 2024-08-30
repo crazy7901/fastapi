@@ -5,7 +5,10 @@ import time
 from fastapi import APIRouter, UploadFile, File
 from fastapi.params import Depends
 
+from app.crud.crud_player import player_dao
+from app.crud.crud_user import user_dao
 from common.response.response_schema import response_base, ResponseModel
+from db.database import async_db_session
 from schemas.club import CreateClubParam
 from schemas.user import *
 from service.club_service import club_service
@@ -89,6 +92,9 @@ async def createClub(club: CreateClubParam, current_user: dict = Depends(get_cur
             "id": data[1].id,
             "captain": data[1].captain
         }
+        async with async_db_session.begin() as db:
+            await user_dao.update_userinfo(db=db, id=current_user['username'], obj={"clubId": data[1].id})
+            await player_dao.update_player(db=db, id=current_user['username'], obj={"clubId": data[1].id, "flag": 1})
         return await response_base.success(data=club_detail)
     else:
         return await response_base.fail(data=data[1])
@@ -139,7 +145,7 @@ async def getApplication(current_user: dict = Depends(get_current_token)) -> Res
 
 
 class PlayerUser(BaseModel):
-    userId: str
+    userId: int
     decision: int
 
 

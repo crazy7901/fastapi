@@ -46,20 +46,20 @@ class RaceService:
         async with async_db_session.begin() as db:
             race_ = await race_dao.get_race(db=db, id=race.id)
             race_ = race_[0]
-            oldawayClub = race_.awayClub
-            oldhomeClub = race_.homeClub
+            oldawayClubId = race_.awayClubId
+            oldhomeClubId = race_.homeClubId
             role = await user_dao.get(db=db, id=username)
             if not race.id:
                 return False, "比赛 ID 不能为空"
             elif role[0].role // 1000 == 2:  # 2开头的为管理员,有所有权限
                 dict = race.dict(exclude_unset=True)
                 result = await race_dao.update_race(db=db, obj=dict, id=race.id)
-                if race.awayClub:
-                    if oldawayClub != race.awayClub:
-                        count = await matchplayer_dao.delete(db=db, club=race_.awayClub, raceId=race.id)
-                if race.homeClub:
-                    if oldhomeClub != race.homeClub:
-                        count = await matchplayer_dao.delete(db=db, club=race_.homeClub, raceId=race.id)
+                if race.awayClubId:
+                    if oldawayClubId != race.awayClubId:
+                        count = await matchplayer_dao.delete(db=db, raceId=race.id)
+                if race.homeClubId:
+                    if oldhomeClubId != race.homeClubId:
+                        count = await matchplayer_dao.delete(db=db, raceId=race.id)
                 return result, ''
             elif role[0].role // 100 == 11:  # 11开头的为队长
                 if race.homeTeamGoalsScored or race.awayTeamGoalsScored:
@@ -67,11 +67,11 @@ class RaceService:
                 dict = race.dict(exclude_unset=True)
                 result = await race_dao.update_race(db=db, obj=dict, id=race.id)
                 if race.awayClub:
-                    if oldawayClub != race.awayClub:
-                        count = await matchplayer_dao.delete(db=db, club=oldawayClub, raceId=race.id)
+                    if oldawayClubId != race.awayClubId:
+                        count = await matchplayer_dao.delete(db=db,  raceId=race.id)
                 if race.homeClub:
-                    if oldhomeClub != race.homeClub:
-                        count = await matchplayer_dao.delete(db=db, club=oldhomeClub, raceId=race.id)
+                    if oldhomeClubId != race.homeClubId:
+                        count = await matchplayer_dao.delete(db=db,  raceId=race.id)
                 return result, ''
 
             else:
@@ -87,8 +87,8 @@ class RaceService:
                     player = await player_service.get_player_by_userId(id=obj.userId)
                     if not obj.name:
                         obj.name = player[0].name
-                    if not obj.club:
-                        obj.club = player[0].club
+                    if not obj.clubId:
+                        obj.clubId = player[0].clubId
                     if not obj.number:
                         obj.number = player[0].number
                     if not obj.position:

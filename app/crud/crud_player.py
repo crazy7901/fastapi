@@ -12,11 +12,11 @@ class CRUDPlayer:
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get_player(self, db: AsyncSession, club: str | None = None, name: str | None = None,
+    async def get_player(self, db: AsyncSession, club: int | None = None, name: str | None = None,
                          id: int | None = None, number: int | None = None, userId: int | None = None):
         if club is not None:
             players = await db.execute(
-                select(self.model).where(self.model.club == club))
+                select(self.model).where(self.model.clubId == club))
             return players.scalars().all()
         if name is not None:
             players = await db.execute(select(self.model).where(self.model.name == name))
