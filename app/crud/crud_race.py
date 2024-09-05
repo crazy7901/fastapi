@@ -53,6 +53,7 @@ class CRUDRace:
         else:
             dict_obj = obj.model_dump()
             new_race = self.model(**dict_obj)
+            print(new_race)
             db.add(new_race)
             return True, "比赛创建成功"
 

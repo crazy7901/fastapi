@@ -57,6 +57,14 @@ class ClubService:
             else:
                 return False, '只有队长可以执行此操作'
 
+    @staticmethod
+    async def get_club(id: str | int):
+        async with async_db_session.begin() as db:
+            club = await club_dao.get_club(db=db, id=int(id))
+            if club:
+                return club[0]
+            else:
+                return False
 
 #
 

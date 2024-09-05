@@ -8,6 +8,7 @@ from oss2.credentials import EnvironmentVariableCredentialsProvider
 from common.response.response_schema import response_base
 from schemas.matchplayer import CreateMatchPlayerParam
 from schemas.race import CreateRaceParam, UpdateRaceParam
+from service.club_service import club_service
 from service.race_service import race_service
 from util.token import get_current_token
 
@@ -26,16 +27,18 @@ router = APIRouter()
 async def getNextMatch():
     data = await race_service.get_next()
     if data:
-        object_name1 = f'club/{data.homeClub}.png'
+        homeClub=await club_service.get_club(data.homeClubId)
+        awayClub=await club_service.get_club(data.awayClubId)
+        object_name1 = f'club/{data.homeClubId}.png'
         url1 = bucket.sign_url('GET', object_name1, 3600, slash_safe=True)
-        object_name2 = f'club/{data.awayClub}.png'
+        object_name2 = f'club/{data.awayClubId}.png'
         url2 = bucket.sign_url('GET', object_name2, 3600, slash_safe=True)
         data = {
             "id": data.id,
             "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
             "endTime": data.endTime.strftime('%Y-%m-%d %H:%M:%S'),
-            "homeClub": data.homeClub,
-            "awayClub": data.awayClub,
+            "homeClub": homeClub.name,
+            "awayClub": awayClub.name,
             "venue": data.venue,
             "eventId": data.eventId,
             "multiPlayer": data.multiPlayer,
@@ -51,23 +54,21 @@ async def getTodayMatches():
     races = []
     if datas:
         for data in datas:
-            object_name1 = f'club/{data.homeClub}.png'
+            homeClub=await club_service.get_club(data.homeClubId)
+            awayClub=await club_service.get_club(data.awayClubId)
+            object_name1 = f'club/{data.homeClubId}.png'
             url1 = bucket.sign_url('GET', object_name1, 3600, slash_safe=True)
-            object_name2 = f'club/{data.awayClub}.png'
+            object_name2 = f'club/{data.awayClubId}.png'
             url2 = bucket.sign_url('GET', object_name2, 3600, slash_safe=True)
             d = {
                 "id": data.id,
                 "startTime": data.startTime.strftime('%Y-%m-%d %H:%M:%S'),
                 "endTime": data.endTime.strftime('%Y-%m-%d %H:%M:%S'),
-                "homeClub": data.homeClub,
-                "awayClub": data.awayClub,
+                "homeClub": homeClub.name,
+                "awayClub": awayClub.name,
                 "venue": data.venue,
                 "eventId": data.eventId,
                 "multiPlayer": data.multiPlayer,
-                "homeTeamGoalsScored": data.homeTeamGoalsScored,
-                "awayTeamGoalsScored": data.awayTeamGoalsScored,
-                "homeTeamJersey": data.homeTeamJersey,
-                "awayTeamJersey": data.awayTeamJersey,
                 "homeAvatar": url1,
                 "awayAvatar": url2
             }

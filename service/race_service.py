@@ -66,10 +66,10 @@ class RaceService:
                     return False, "队长不能修改比分"
                 dict = race.dict(exclude_unset=True)
                 result = await race_dao.update_race(db=db, obj=dict, id=race.id)
-                if race.awayClub:
+                if race.awayClubId:
                     if oldawayClubId != race.awayClubId:
                         count = await matchplayer_dao.delete(db=db,  raceId=race.id)
-                if race.homeClub:
+                if race.homeClubId:
                     if oldhomeClubId != race.homeClubId:
                         count = await matchplayer_dao.delete(db=db,  raceId=race.id)
                 return result, ''

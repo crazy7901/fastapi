@@ -47,8 +47,11 @@ async def register(toaddr: str, f: int = 0) -> ResponseModel:  # flag为1意味�
         dict_captcha[toaddr] = captcha
         dict_captcha[toaddr + "time"] = time.time()
         mess = "您的验证码为:" + captcha
-        await send_email(mess=mess, to_addr=toaddr)
-        return await response_base.success(data="验证码已发送")
+        result = await send_email(mess=mess, to_addr=toaddr)
+        if result:
+            return await response_base.success(data="验证码已发送")
+        else:
+            return await response_base.fail(data="验证码发送失败")
 
 
 @router.post("/register/{captcha}", summary="注册接口")
@@ -159,8 +162,8 @@ async def clubDecide(playerinfo: PlayerUser, current_user: dict = Depends(get_cu
 
 
 @router.get("/avatar", summary="获取用户头像")
-async def avatar(user: UpdateUserParam) -> ResponseModel:
-    username = user.id
+async def avatar(current_user: dict = Depends(get_current_token)) -> ResponseModel:
+    id = current_user['username']
     object_name = f'player/{id}.png'
 
     # 生成下载文件的签名URL，有效时间为3600秒。
@@ -181,10 +184,10 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
     return await response_base.success(data="Image processed successfully")
 
 
-@router.put("/clubAvatar", summary='上传俱乐部头像')
-async def upload_image(file: UploadFile = File(...)):
+@router.post("/clubAvatar", summary='上传俱乐部头像')
+async def upload_image(clubId: str | int, file: UploadFile = File(...)):
     contents = await file.read()
-    bucket.put_object(f'club/化联2队.png', contents)
+    bucket.put_object(f'club/{str(clubId)}.png', contents)
     # 处理图像
     # ...
 
