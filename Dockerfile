@@ -11,8 +11,6 @@ COPY requirements.txt /app/
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV OSS_ACCESS_KEY_ID="LTAI5tMFGBUihiQSJJUFmDQn"
-ENV OSS_ACCESS_KEY_SECRET="VKzyTFdzA2ekAHil36uNtrMG2iEnqT"
 #ENV OSS_SESSION_TOKEN="your_session_token"
 # Copy the current directory contents into the container at /app
 COPY . /app
